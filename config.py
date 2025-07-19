@@ -14,9 +14,11 @@ class ModelConfig(BaseModel):
     params: Dict[str, Any] = {}
 
 class CriticConfig(BaseModel):
+    strategy: str = "merge"
     endpoint: str
     model: str
     temperature: float = 0.6
+    strategy_params: Dict[str, Any] = {}
     system_prompt: Optional[str] = None
     user_prompt: Optional[str] = None
     context_system_prompt: Optional[str] = None

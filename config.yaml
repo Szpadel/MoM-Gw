@@ -26,6 +26,7 @@ critic:
   endpoint: openrouter
   model: deepseek/deepseek-r1-0528
   temperature: 0.6
+  strategy: merge
   # system_prompt: |
   #   You are an expert judge. Decide which answer (or combination) is best.
   # user_prompt: |
