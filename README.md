@@ -32,7 +32,7 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
    ```bash
    LM_STUDIO_API_BASE=http://127.0.0.1:8000/v1 \
    LM_STUDIO_API_KEY=123 \
-   aider --model lm_studio/mom --no-stream --editor-model gpt-4.1 --architect
+   aider --model lm_studio/mom --no-stream --editor-model gpt-4.1 --architect --weak-model gpt-4.1-mini
    ```
 
 **Security Warning**: This gateway performs no API key validation. Never expose it beyond localhost as it lacks authentication and security measures suitable for production.
