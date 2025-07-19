@@ -48,7 +48,7 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
 - Timeout handling for upstream API calls
 
 ## Current Limitations
-- **Streaming responses (`"stream": true`) are unsupported** and return HTTP 400 errors
+- Streaming responses (`"stream": true`) are unsupported and return HTTP 400 errors
 - Limited to chat completion endpoints (no embeddings, images, or other modalities)
 - No authentication, rate limiting, or production hardening
 - Static configuration requiring service restart for changes
