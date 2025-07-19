@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 import uvicorn
 
-from app import app, DEBUG_REQUESTS_DIR
+import app
 from utils import request_id_ctx
 
 logger = logging.getLogger(__name__)
@@ -39,8 +39,8 @@ if __name__ == "__main__":
         logger.debug("Debug logging enabled")
 
     if args.debug_requests:
-        DEBUG_REQUESTS_DIR = Path("debug-requests")
-        DEBUG_REQUESTS_DIR.mkdir(exist_ok=True, parents=True)
-        logger.info("Per-request debug traces will be written to %s", DEBUG_REQUESTS_DIR)
+        app.DEBUG_REQUESTS_DIR = Path("debug-requests")
+        app.DEBUG_REQUESTS_DIR.mkdir(exist_ok=True, parents=True)
+        logger.info("Per-request debug traces will be written to %s", app.DEBUG_REQUESTS_DIR)
 
-    uvicorn.run(app, host="0.0.0.0", port=args.port, reload=False)
+    uvicorn.run(app.app, host="0.0.0.0", port=args.port, reload=False)
