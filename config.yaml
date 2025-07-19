@@ -1,0 +1,34 @@
+endpoints:
+- name: openrouter
+  base_url: https://openrouter.ai/api
+  api_key: ${OPENROUTER_API_KEY}
+
+models:
+- endpoint: openrouter
+  model: openai/o3
+  params:
+    reasoning_effort: high
+- endpoint: openrouter
+  model: x-ai/grok-4
+- endpoint: openrouter
+  model: deepseek/deepseek-r1-0528
+- endpoint: openrouter
+  model: moonshotai/kimi-k2
+- endpoint: openrouter
+  model: anthropic/claude-sonnet-4
+  params:
+    thinking: { "type": "enabled", "budget_tokens": 32768 }
+    max_tokens: 64000
+- endpoint: openrouter
+  model: google/gemini-2.5-pro
+
+critic:
+  endpoint: openrouter
+  model: deepseek/deepseek-r1-0528
+  temperature: 0.6
+  # system_prompt: |
+  #   You are an expert judge. Decide which answer (or combination) is best.
+  # user_prompt: |
+  #   Below are several candidate answers produced by different models.
+  #   Choose the single best answer or merge them into one high-quality response.
+  #   Return ONLY the final answer, with no additional commentary.

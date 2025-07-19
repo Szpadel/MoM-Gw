@@ -1,0 +1,4 @@
+.venv
+debug-requests
+__pycache__
+test.sh
