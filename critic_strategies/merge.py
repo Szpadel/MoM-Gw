@@ -1,6 +1,12 @@
 from .base import BaseCriticStrategy
 from typing import List, Dict, Any, Optional, AsyncGenerator
 import logging
+from .merge_prompts import (
+    DEFAULT_CONTEXT_SYSTEM_PROMPT,
+    DEFAULT_CONTEXT_USER_PROMPT,
+    DEFAULT_MERGE_SYSTEM_PROMPT,
+    DEFAULT_MERGE_USER_PROMPT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -10,14 +16,10 @@ class MergeStrategy(BaseCriticStrategy):
         if not self.cfg.context_system_prompt and not self.cfg.context_user_prompt:
             return None
 
-        sys_prompt = self.cfg.context_system_prompt or (
-            "You are an assistant that extracts the latest user question plus any "
-            "necessary context so another model can judge candidate answers."
-        )
-        user_prompt = (self.cfg.context_user_prompt or (
-            "Given the following chat history JSON, output the final user question "
-            "rephrased together with any essential context:\n\n{history}"
-        )).format(history=messages)
+        sys_prompt = self.cfg.context_system_prompt or DEFAULT_CONTEXT_SYSTEM_PROMPT
+        user_prompt = (
+            self.cfg.context_user_prompt or DEFAULT_CONTEXT_USER_PROMPT
+        ).format(history=messages)
 
         payload = {
             "model": self.cfg.model,
@@ -37,25 +39,17 @@ class MergeStrategy(BaseCriticStrategy):
             f"=!=!= Answer #{i+1}:\n{c['choices'][0]['message']['content']} =!=!="
             for i, c in enumerate(candidates)
         )
-        user_prompt = (self.cfg.user_prompt or (
-            "Context:\n{context}\n\n"
-            "Candidate answers (delimited by =!=!= ... =!=!=):\n{answers}\n\n"
-            "Compose the SINGLE, self-contained, high-quality answer described "
-            "above. Keep all useful details and reasoning. Do not mention that the "
-            "answer was merged or reference the existence of other answers."
-        )).format(context=context or "", answers=answers)
+        user_prompt = (
+            self.cfg.user_prompt or DEFAULT_MERGE_USER_PROMPT
+        ).format(context=context or "", answers=answers)
 
         payload = {
             "model": self.cfg.model,
             "messages": [
-                {"role": "system", "content": self.cfg.system_prompt or (
-                    "You are an expert answer composer. Analyse every candidate answer, "
-                    "identify all valuable ideas, explanations, arguments, examples and "
-                    "code snippets, then write ONE comprehensive, well-structured answer "
-                    "that merges those good parts, removes contradictions and fills any "
-                    "gaps. The final result must be richer and clearer than any single "
-                    "candidate answer."
-                )},
+                {
+                    "role": "system",
+                    "content": self.cfg.system_prompt or DEFAULT_MERGE_SYSTEM_PROMPT,
+                },
                 {"role": "user", "content": user_prompt}
             ],
             "temperature": self.cfg.temperature
@@ -76,22 +70,18 @@ class MergeStrategy(BaseCriticStrategy):
             for i, c in enumerate(candidates)
         )
 
-        user_prompt = (self.cfg.user_prompt or (
-            "Context:\n{context}\n\n"
-            "Candidate answers (delimited by =!=!= ... =!=!=):\n{answers}\n\n"
-            "Compose the SINGLE, self-contained, high-quality answer that merges "
-            "the best parts. Preserve all valuable content without contradictions."
-        )).format(context=context or "", answers=answers)
+        user_prompt = (
+            self.cfg.user_prompt or DEFAULT_MERGE_USER_PROMPT
+        ).format(context=context or "", answers=answers)
 
         payload = {
             "model": self.cfg.model,
             "messages": [
-                {"role": "system", "content": self.cfg.system_prompt or (
-                    "You are an expert answer composer. Analyse every candidate answer, "
-                    "identify valuable ideas, explanations, arguments, examples and "
-                    "code snippets, then write ONE comprehensive, well-structured answer "
-                    "that merges the best parts and fills gaps."
-                )},
+                {
+                    "role": "system",
+                    "content": self.cfg.system_prompt
+                    or DEFAULT_MERGE_SYSTEM_PROMPT,
+                },
                 {"role": "user", "content": user_prompt}
             ],
             "temperature": self.cfg.temperature
