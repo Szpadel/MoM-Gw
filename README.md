@@ -34,7 +34,7 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
    LM_STUDIO_API_KEY=123 \
    aider --model lm_studio/mom --editor-model gpt-4.1 --architect --weak-model gpt-4.1-mini
    ```
- 
+
 **Security Warning**: This gateway performs no API key validation. Never expose it beyond localhost as it lacks authentication and security measures suitable for production.
 
 ## Supported Features
@@ -43,6 +43,7 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
 - Automatic response synthesis through specialized critic model
 - Streaming responses (`"stream": true`) with real-time critic synthesis
 - Environment variable substitution in configuration
+- Optional reasoning filter (`--workaround-reasoning-as-think`) that wraps intermediate reasoning tokens in `<think>...</think>` tags during streaming for better client compatibility
 - Debug request tracing (saved to `debug-requests/`)
 - Customizable model parameters (temperature, max_tokens)
 - Automatic retries with exponential backoff

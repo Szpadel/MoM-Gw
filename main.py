@@ -17,8 +17,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--port", type=int, default=8000, help="Listen port")
     parser.add_argument(
-        "--reasoning-filter", action="store_true",
-        help="Enable streaming reasoning filter (<think>...</think> tags)"
+        "--workaround-reasoning-as-think", action="store_true",
+        help="Enable streaming reasoning using inside content (<think>...</think> tags)"
     )
     args = parser.parse_args()
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         app.DEBUG_REQUESTS_DIR.mkdir(exist_ok=True, parents=True)
         logger.info("Per-request debug traces will be written to %s", app.DEBUG_REQUESTS_DIR)
 
-    if args.reasoning_filter:
+    if args.workaround_reasoning_as_think:
         import app as app_module
         app_module.REASONING_FILTER_ENABLED = True
         logger.info("Reasoning filter enabled: streaming output will use <think>...</think> tags.")
