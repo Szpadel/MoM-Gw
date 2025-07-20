@@ -77,7 +77,7 @@ def write_debug_trace(
         )
         lines.append(final_content)
 
-        fname = debug_dir / f"{request_id}-{int(time.time())}.txt"
+        fname = debug_dir / f"{int(time.time())}-{request_id}.txt"
         fname.write_text("\n".join(lines), encoding="utf-8")
     except Exception as exc:      # never break main flow
         logger.exception("Failed to write debug trace: %s", exc)
