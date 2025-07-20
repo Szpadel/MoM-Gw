@@ -1,8 +1,10 @@
 import asyncio
 import uuid
 import httpx
+import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
 from config import load_config, AppConfig
@@ -61,9 +63,7 @@ async def call_endpoint(client: httpx.AsyncClient, endpoint, payload: dict):
 @app.post("/v1/chat/completions")
 async def chat_completions(req: ChatCompletionRequest, request: Request):
     logger.info("Starting request processing")
-    if req.stream:
-        raise HTTPException(400, "Streaming not supported")
-
+    rid = request.state.id
     config: AppConfig = request.app.state.config
     client = request.app.state.http_client
 
@@ -72,15 +72,16 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
     context_task = app.state.critic.compose_context_question(req.messages)
     model_tasks = []
     tasks_info = []
-    
+
     for model in config.models:
         endpoint = next((e for e in config.endpoints if e.name == model.endpoint), None)
         if not endpoint:
             continue
-            
+
         # Merge payloads (model params first, client overrides)
         payload = {**model.params, **req.dict(exclude_unset=True)}
         payload["model"] = model.model
+        payload["stream"] = False  # Force non-streaming for base models
 
         task = call_endpoint(client, endpoint, payload)
         model_tasks.append(task)
@@ -102,23 +103,59 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
             task_info["body"] = res.json()
             successful.append(task_info["body"])
 
-    logger.info(f"Processing {len(successful)} successful responses")
-    logger.info("Starting critic execution")
-    final_resp = await app.state.critic.run_critic(successful, context)
-    logger.info("Critic completed")
+    # Streaming path
+    if req.stream:
+        logger.info("Starting streaming critic execution")
 
-    # Non-blocking debug writes
+        async def stream_generator():
+            full_content = ""
+            try:
+                async for chunk in app.state.critic.run_critic_stream(successful, context):
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                    if chunk.get("choices") and chunk["choices"][0].get("delta"):
+                        delta = chunk["choices"][0]["delta"]
+                        full_content += delta.get("content", "")
+            finally:
+                # Write debug trace after stream completes
+                if DEBUG_REQUESTS_DIR:
+                    final_resp = {
+                        "choices": [{"message": {"content": full_content}}],
+                        "usage": {"total_tokens": len(full_content.split())}
+                    }
+                    await asyncio.get_running_loop().run_in_executor(
+                        None,
+                        write_debug_trace,
+                        req.messages,
+                        tasks_info,
+                        context,
+                        final_resp,
+                        DEBUG_REQUESTS_DIR,
+                        rid
+                    )
+
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            stream_generator(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache"}
+        )
+
+    # Non-streaming path
+    logger.info("Starting non-streaming critic execution")
+    final_resp = await app.state.critic.run_critic(successful, context)
+
     if DEBUG_REQUESTS_DIR:
         await asyncio.get_running_loop().run_in_executor(
-            None, 
+            None,
             write_debug_trace,
             req.messages,
             tasks_info,
             context,
             final_resp,
             DEBUG_REQUESTS_DIR,
-            request.state.id
+            rid
         )
-    
+
     logger.info("Request processing finished")
     return final_resp
