@@ -16,6 +16,10 @@ if __name__ == "__main__":
         help="Save human-readable trace of each request to ./debug-requests/"
     )
     parser.add_argument("--port", type=int, default=8000, help="Listen port")
+    parser.add_argument(
+        "--reasoning-filter", action="store_true",
+        help="Enable streaming reasoning filter (<think>...</think> tags)"
+    )
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.debug else logging.INFO
@@ -42,5 +46,10 @@ if __name__ == "__main__":
         app.DEBUG_REQUESTS_DIR = Path("debug-requests")
         app.DEBUG_REQUESTS_DIR.mkdir(exist_ok=True, parents=True)
         logger.info("Per-request debug traces will be written to %s", app.DEBUG_REQUESTS_DIR)
+
+    if args.reasoning_filter:
+        import app as app_module
+        app_module.REASONING_FILTER_ENABLED = True
+        logger.info("Reasoning filter enabled: streaming output will use <think>...</think> tags.")
 
     uvicorn.run(app.app, host="0.0.0.0", port=args.port, reload=False)

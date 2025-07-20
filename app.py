@@ -13,6 +13,9 @@ from utils import write_debug_trace, format_response, request_id_ctx
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import logging
+from reasoning_filter import ReasoningFilter
+
+REASONING_FILTER_ENABLED = False
 
 class ChatCompletionRequest(BaseModel):
     model: Optional[str] = None
@@ -110,13 +113,21 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
         async def stream_generator():
             full_content = ""
             full_reasoning = ""
+            # Instantiate the filter per request if enabled
+            reasoning_filter = ReasoningFilter() if REASONING_FILTER_ENABLED else None
             try:
                 async for chunk in app.state.critic.run_critic_stream(successful, context):
-                    yield f"data: {json.dumps(chunk)}\n\n"
+                    # Accumulate raw content/reasoning for debug trace
                     if chunk.get("choices") and chunk["choices"][0].get("delta"):
                         delta = chunk["choices"][0]["delta"]
+                        if "reasoning" in delta:
+                            # Mirror reasoning for better compatibility
+                            delta["reasoning_content"] = delta["reasoning"]
                         full_content += delta.get("content", "") or ""
                         full_reasoning += delta.get("reasoning", "") or ""
+                    # Apply reasoning filter if enabled
+                    filtered_chunk = reasoning_filter.stream(chunk) if reasoning_filter else chunk
+                    yield f"data: {json.dumps(filtered_chunk)}\n\n"
             finally:
                 # Write debug trace after stream completes
                 if DEBUG_REQUESTS_DIR:
