@@ -35,8 +35,6 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
    aider --model lm_studio/mom --editor-model gpt-4.1 --architect --weak-model gpt-4.1-mini
    ```
 
-**Security Warning**: This gateway performs no API key validation. Never expose it beyond localhost as it lacks authentication and security measures suitable for production.
-
 ## Supported Features
 - OpenAI-compatible `/v1/chat/completions` endpoint
 - Parallel fan-out to multiple models/configurable via YAML
