@@ -3,7 +3,7 @@ import uuid
 import httpx
 import json
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends, Header
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -33,6 +33,14 @@ async def lifespan(app: FastAPI):
     """Manage shared HTTP client"""
     config = load_config()
     app.state.config = config
+
+    if not config.api_key:
+        logger.warning(
+            "WARNING: No API key configured!\n" +
+            "The gateway is open to anyone who can reach it.\n" +
+            "Set 'api_key' in config.yaml to enable authentication.\n"
+        )
+
     transport = httpx.AsyncHTTPTransport(retries=2)
     app.state.http_client = httpx.AsyncClient(
         timeout=config.timeout,
@@ -63,7 +71,29 @@ async def call_endpoint(client: httpx.AsyncClient, endpoint, payload: dict):
     headers = {"Authorization": f"Bearer {endpoint.api_key}"}
     return await client.post(url, json=payload, headers=headers)
 
-@app.post("/v1/chat/completions")
+async def _verify_api_key(
+    request: Request,
+    authorization: Optional[str] = Header(None, convert_underscores=False),
+    x_api_key: Optional[str] = Header(None)
+):
+    config = request.app.state.config
+    if not config.api_key:  # Auth disabled
+        return
+
+    supplied_key = None
+    if authorization and authorization.lower().startswith("bearer "):
+        supplied_key = authorization[7:]
+    elif x_api_key:
+        supplied_key = x_api_key
+
+    if supplied_key != config.api_key:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+@app.post("/v1/chat/completions", dependencies=[Depends(_verify_api_key)])
 async def chat_completions(req: ChatCompletionRequest, request: Request):
     logger.info("Starting request processing")
     rid = request.state.id

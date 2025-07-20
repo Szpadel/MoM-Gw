@@ -29,6 +29,7 @@ class AppConfig(BaseModel):
     models: List[ModelConfig]
     critic: Optional[CriticConfig] = None
     timeout: float = 180.0
+    api_key: Optional[str] = None
 
 def _resolve_env(obj: Any) -> Any:
     """Recursively resolve ${ENV_VAR} placeholders"""

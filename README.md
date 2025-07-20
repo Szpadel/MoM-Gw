@@ -31,7 +31,7 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
 4. Connect [aider](https://aider.chat) using:
    ```bash
    LM_STUDIO_API_BASE=http://127.0.0.1:8000/v1 \
-   LM_STUDIO_API_KEY=123 \
+   LM_STUDIO_API_KEY=sesame \
    aider --model lm_studio/mom --editor-model gpt-4.1 --architect --weak-model gpt-4.1-mini
    ```
 
@@ -43,15 +43,33 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
 - Automatic response synthesis through specialized critic model
 - Streaming responses (`"stream": true`) with real-time critic synthesis
 - Environment variable substitution in configuration
+- Optional API key authentication (configure `api_key` in config.yaml)
 - Optional reasoning filter (`--workaround-reasoning-as-think`) that wraps intermediate reasoning tokens in `<think>...</think>` tags during streaming for better client compatibility
 - Debug request tracing (saved to `debug-requests/`)
 - Customizable model parameters (temperature, max_tokens)
 - Automatic retries with exponential backoff
 - Timeout handling for upstream API calls
 
+## Authentication
+Enable by adding to `config.yaml`:
+```yaml
+api_key: "your-secret-key"  # Or use ${ENV_VAR}
+```
+
+Send requests with either:
+```bash
+# Authorization header
+curl -H "Authorization: Bearer your-secret-key" ...
+
+# X-API-Key header
+curl -H "X-API-Key: your-secret-key" ...
+```
+
+**WARNING:** Without `api_key` configuration, the gateway accepts requests from anyone. Never expose unsecured instances beyond localhost.
+
 ## Current Limitations
 - Limited to chat completion endpoints (no embeddings, images, or other modalities)
-- No authentication, rate limiting, or production hardening
+- No rate limiting, or production hardening
 - Static configuration requiring service restart for changes
 - Basic error handling with no advanced fallback mechanisms
 - Critic uses single-stage prompting without multi-step verification
