@@ -32,15 +32,16 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
    ```bash
    LM_STUDIO_API_BASE=http://127.0.0.1:8000/v1 \
    LM_STUDIO_API_KEY=123 \
-   aider --model lm_studio/mom --no-stream --editor-model gpt-4.1 --architect --weak-model gpt-4.1-mini
+   aider --model lm_studio/mom --editor-model gpt-4.1 --architect --weak-model gpt-4.1-mini
    ```
-
+ 
 **Security Warning**: This gateway performs no API key validation. Never expose it beyond localhost as it lacks authentication and security measures suitable for production.
 
 ## Supported Features
 - OpenAI-compatible `/v1/chat/completions` endpoint
 - Parallel fan-out to multiple models/configurable via YAML
 - Automatic response synthesis through specialized critic model
+- Streaming responses (`"stream": true`) with real-time critic synthesis
 - Environment variable substitution in configuration
 - Debug request tracing (saved to `debug-requests/`)
 - Customizable model parameters (temperature, max_tokens)
@@ -48,7 +49,6 @@ Mixture-of-Models (MoM) is an advanced pattern that queries multiple large langu
 - Timeout handling for upstream API calls
 
 ## Current Limitations
-- Streaming responses (`"stream": true`) are unsupported and return HTTP 400 errors
 - Limited to chat completion endpoints (no embeddings, images, or other modalities)
 - No authentication, rate limiting, or production hardening
 - Static configuration requiring service restart for changes
