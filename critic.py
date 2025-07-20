@@ -50,7 +50,7 @@ class CriticService:
                     "index": 0,
                     "delta": {
                         "content": fallback_content,
-                        "reasoning_content": ""
+                        "reasoning": ""
                     },
                     "finish_reason": "stop"
                 }]

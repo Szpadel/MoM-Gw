@@ -70,7 +70,7 @@ class BaseCriticStrategy(ABC):
                             "index": 0,
                             "delta": {
                                 "content": f"Error: HTTP {resp.status_code}",
-                                "reasoning_content": ""
+                                "reasoning": ""
                             },
                             "finish_reason": "stop"
                         }]
@@ -98,7 +98,7 @@ class BaseCriticStrategy(ABC):
                     "index": 0,
                     "delta": {
                         "content": f"Error: {str(exc)}",
-                        "reasoning_content": ""
+                        "reasoning": ""
                     },
                     "finish_reason": "stop"
                 }]
