@@ -31,13 +31,15 @@ def write_debug_trace(
     context: Optional[str],
     final_resp: dict,
     debug_dir: Path,
-    request_id: str
+    request_id: str,
+    critic_thinking: Optional[str] = None
 ):
     """
     Write a human-readable text file containing:
     - initial chat history
     - every upstream model response
     - critic context
+    - critic thinking (reasoning tokens)
     - final critic answer
     """
     try:
@@ -67,6 +69,10 @@ def write_debug_trace(
 
         lines.append("=== CRITIC CONTEXT ===")
         lines.append(context or "(none)")
+        lines.append("")
+
+        lines.append("=== CRITIC THINKING ===")
+        lines.append(critic_thinking or "(none)")
         lines.append("")
 
         lines.append("=== FINAL ANSWER ===")

@@ -48,7 +48,10 @@ class CriticService:
                 "model": "mixture-critic",
                 "choices": [{
                     "index": 0,
-                    "delta": {"content": fallback_content},
+                    "delta": {
+                        "content": fallback_content,
+                        "reasoning_content": ""
+                    },
                     "finish_reason": "stop"
                 }]
             }

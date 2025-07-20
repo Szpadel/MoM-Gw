@@ -109,12 +109,14 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
 
         async def stream_generator():
             full_content = ""
+            full_reasoning = ""
             try:
                 async for chunk in app.state.critic.run_critic_stream(successful, context):
                     yield f"data: {json.dumps(chunk)}\n\n"
                     if chunk.get("choices") and chunk["choices"][0].get("delta"):
                         delta = chunk["choices"][0]["delta"]
                         full_content += delta.get("content", "")
+                        full_reasoning += delta.get("reasoning_content", "")
             finally:
                 # Write debug trace after stream completes
                 if DEBUG_REQUESTS_DIR:
@@ -130,7 +132,8 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
                         context,
                         final_resp,
                         DEBUG_REQUESTS_DIR,
-                        rid
+                        rid,
+                        full_reasoning
                     )
 
             yield "data: [DONE]\n\n"
@@ -145,6 +148,11 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
     logger.info("Starting non-streaming critic execution")
     final_resp = await app.state.critic.run_critic(successful, context)
 
+    # Extract reasoning_content if present
+    reasoning_content = ""
+    if final_resp.get("choices") and final_resp["choices"][0].get("message"):
+        reasoning_content = final_resp["choices"][0]["message"].get("reasoning_content", "")
+
     if DEBUG_REQUESTS_DIR:
         await asyncio.get_running_loop().run_in_executor(
             None,
@@ -154,7 +162,8 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
             context,
             final_resp,
             DEBUG_REQUESTS_DIR,
-            rid
+            rid,
+            reasoning_content
         )
 
     logger.info("Request processing finished")

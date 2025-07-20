@@ -68,7 +68,10 @@ class BaseCriticStrategy(ABC):
                         "model": payload.get("model", "unknown"),
                         "choices": [{
                             "index": 0,
-                            "delta": {"content": f"Error: HTTP {resp.status_code}"},
+                            "delta": {
+                                "content": f"Error: HTTP {resp.status_code}",
+                                "reasoning_content": ""
+                            },
                             "finish_reason": "stop"
                         }]
                     }
@@ -93,7 +96,10 @@ class BaseCriticStrategy(ABC):
                 "model": payload.get("model", "unknown"),
                 "choices": [{
                     "index": 0,
-                    "delta": {"content": f"Error: {str(exc)}"},
+                    "delta": {
+                        "content": f"Error: {str(exc)}",
+                        "reasoning_content": ""
+                    },
                     "finish_reason": "stop"
                 }]
             }
