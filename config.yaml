@@ -8,9 +8,13 @@ models:
 - endpoint: openrouter
   model: openai/o3
   params:
-    reasoning_effort: high
+    reasoning:
+      effort: high
 - endpoint: openrouter
   model: x-ai/grok-4
+  params:
+    reasoning:
+      effort: high
 - endpoint: openrouter
   model: deepseek/deepseek-r1-0528
 - endpoint: openrouter
@@ -18,10 +22,13 @@ models:
 - endpoint: openrouter
   model: anthropic/claude-sonnet-4
   params:
-    thinking: { "type": "enabled", "budget_tokens": 32768 }
-    max_tokens: 64000
+    reasoning:
+      max_tokens: 32768
 - endpoint: openrouter
   model: google/gemini-2.5-pro
+  params:
+    reasoning:
+      max_tokens: 32768
 
 critic:
   endpoint: openrouter
